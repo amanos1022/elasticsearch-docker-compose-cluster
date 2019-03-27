@@ -1,0 +1,11 @@
+node1/data
+node1/snapshots
+
+node2/data
+node2/snapshots
+
+node3/data
+node3/snapshots
+
+filebeat/datasets
+filebeat/var

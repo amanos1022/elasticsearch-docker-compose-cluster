@@ -1,0 +1,69 @@
+version: '3.5'
+
+services:
+  es-node1:
+    image: elasticsearch:6.5.4 
+    container_name: es-node1
+    volumes:
+      - ./node1/data:/usr/share/elasticsearch/data
+      - ./node1/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./node1/snapshots:/var/snapshots
+    ports:
+      - 9400:9200
+      - 9500:9300
+    links:
+      - es-node2
+      - es-node3
+  es-node2:
+    image: elasticsearch:6.5.4 
+    container_name: es-node2
+    volumes:
+      - ./node2/data:/usr/share/elasticsearch/data
+      - ./node2/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./node1/snapshots:/var/snapshots
+  es-node3:
+    image: elasticsearch:6.5.4 
+    container_name: es-node3
+    volumes:
+      - ./node3/data:/usr/share/elasticsearch/data
+      - ./node3/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./node3/snapshots:/var/snapshots
+  kibana:
+    image: kibana:6.5.4 
+    container_name: kibana 
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - 5602:5601
+    links:
+      - es-node1
+  beats:
+    image: docker.elastic.co/beats/filebeat:6.6.2
+    container_name: filebeat
+    command: filebeat -e -strict.perms=false
+    volumes: 
+      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./filebeat/datasets:/usr/share/filebeat/data
+      - ./filebeat/var/run/docker.sock:/var/run/docker.sock
+      - ./filebeat/var/lib/docker/containers/:/var/lib/docker/containers
+      - ./filebeat/var/log/:/var/log/
+      - ./filebeat/config:/etc/filebeat
+    environment:
+      - strict.perms=false
+      - output.elasticsearch.hosts=["es-node1:9200"]
+    links:
+      - es-node1
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:6.6.2
+  #   container_name: bizx-logstash
+  #   command: "bin/logstash -f /usr/share/logstash/pipeline/blogs_csv.conf"
+  #   volumes:
+  #     - ./logstash/datasets:/datasets/
+  #     - ./logstash/settings/logstash.yml:/usr/share/logstash/config/logstash.yml 
+  #     - ./logstash/pipeline/:/usr/share/logstash/pipeline/
+  #     # - ./logstash/datasets:/datadumps
+  #     # - ./logstash/logs:/usr/share/logstash/logs
+  #     # - ./logstash/pipeline/:/usr/share/logstash/pipeline/
+  #   links:
+  #     - es-node1
+  #     - kibana

@@ -9,8 +9,8 @@ services:
       - ./node1/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
       - ./node1/snapshots:/var/snapshots
     ports:
-      - 9400:9200
-      - 9500:9300
+      - 9200:9200
+      - 9300:9300
     links:
       - es-node2
       - es-node3
@@ -34,7 +34,7 @@ services:
     volumes:
       - ./kibana.yml:/usr/share/kibana/config/kibana.yml
     ports:
-      - 5602:5601
+      - 5601:5601
     links:
       - es-node1
   beats:
